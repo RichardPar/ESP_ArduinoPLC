@@ -15,25 +15,28 @@ void DeviceConfig::writeToEeprom() {
   for (int i = 0; i < DEVICE_CONFIG_EEPROM_BYTES; i++) {
     EEPROM.write(_eepromAddress + i, _config[i]);
   }
+#ifdef NODEMCU  
+  EEPROM.commit();
+#endif  
 }
 
 boolean DeviceConfig::isInput(int pin) {
-  if(pin < MIN_PIN_NUMBER || pin > MAX_PIN_NUMBER || pin == STATUS_LED_PIN) return false;
+  if( pin > MAX_PIN_NUMBER || pin == STATUS_LED_PIN) return false;
   return _config[pin] == pin_config_input;
 }
 
 void DeviceConfig::setInput(int pin) {
-  if(pin < MIN_PIN_NUMBER || pin > MAX_PIN_NUMBER || pin == STATUS_LED_PIN) return;
+  if(pin > MAX_PIN_NUMBER || pin == STATUS_LED_PIN) return;
   _config[pin] = pin_config_input;
 }
 
 boolean DeviceConfig::isOutput(int pin) {
-  if(pin < MIN_PIN_NUMBER || pin > MAX_PIN_NUMBER || pin == STATUS_LED_PIN) return false;
+  if(pin > MAX_PIN_NUMBER || pin == STATUS_LED_PIN) return false;
   return _config[pin] == pin_config_output;
 }
 
 void DeviceConfig::setOutput(int pin) {
-  if(pin < MIN_PIN_NUMBER || pin > MAX_PIN_NUMBER || pin == STATUS_LED_PIN) return;
+  if(pin > MAX_PIN_NUMBER || pin == STATUS_LED_PIN) return;
   _config[pin] = pin_config_output;
 }
 
@@ -48,7 +51,7 @@ void DeviceConfig::setPwm(int pin) {
 }
 
 void DeviceConfig::reset() {
-  for(int i = MIN_PIN_NUMBER; i <= MAX_PIN_NUMBER; i++) {
+  for(int i = 0; i <= MAX_PIN_NUMBER; i++) {
     if(i != STATUS_LED_PIN) {
       setInput(i);
     }
@@ -57,7 +60,7 @@ void DeviceConfig::reset() {
 
 int DeviceConfig::getAddress(int pin) {
   // return a boolean address
-  return pin - MIN_PIN_NUMBER;
+  return pin;
 }
 
 byte DeviceConfig::getPwmAddress(int pin) {

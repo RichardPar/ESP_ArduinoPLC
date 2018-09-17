@@ -38,5 +38,9 @@ void StatusLED::countTenth() {
   else {
     state = digitalRead(_ledPin) ^ 1;
   }
+#ifdef NODEMCU
+  digitalWrite(_ledPin, !state);
+#else
   digitalWrite(_ledPin, state);
+#endif  
 }

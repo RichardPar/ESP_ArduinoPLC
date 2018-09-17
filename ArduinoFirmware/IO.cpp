@@ -6,31 +6,31 @@ IO::IO(DeviceConfig* deviceConfig, Memory* memory) {
 }
 
 void IO::configureIO() {
-  for(int pin = MIN_PIN_NUMBER; pin <= MAX_PIN_NUMBER; pin++) {
+  for(int pin = 0; pin < MAX_PIN_NUMBER; pin++) {
     if(_deviceConfig->isOutput(pin) || _deviceConfig->isPwm(pin)) {
-      pinMode(pin, OUTPUT);
+      pinMode(PIN_MAP[pin], OUTPUT);
     }
     else {
-      pinMode(pin, INPUT);
+      pinMode(PIN_MAP[pin], INPUT);
     }
   }
 }
 
 void IO::printIO() {
-  for(int pin = MIN_PIN_NUMBER; pin <= MAX_PIN_NUMBER; pin++) {
+  for(int pin = 0; pin < MAX_PIN_NUMBER; pin++) {
     if(pin != STATUS_LED_PIN) {
       printPinConfig(pin);
     }
   }
-  for(int analog = MIN_ANALOG_INPUT; analog <= MAX_ANALOG_INPUT; analog++) {
-    int address = analog - MIN_ANALOG_INPUT;
+  for(int analog =0; analog < MAX_ANALOG_INPUT; analog++) {
+    int address = analog;
     Serial.print(F("A"));
     Serial.print(analog);
     Serial.print(F(", "));
     Serial.print(address);
     Serial.println(F(", analogInput"));
   }
-  for(int pwmPin = MIN_PIN_NUMBER; pwmPin <= MAX_PIN_NUMBER; pwmPin++) {
+  for(int pwmPin = 0; pwmPin < MAX_PIN_NUMBER; pwmPin++) {
     if(_deviceConfig->isPwm(pwmPin)) {
       byte pwmAddress = _deviceConfig->getPwmAddress(pwmPin);
       Serial.print(F("pin"));
@@ -63,10 +63,10 @@ void IO::printPinConfig(int pin) {
 }
 
 void IO::scanInputs() {
-  for(int pin = MIN_PIN_NUMBER; pin <= MAX_PIN_NUMBER; pin++) {
+  for(int pin = 0; pin < MAX_PIN_NUMBER; pin++) {
     if(pin != STATUS_LED_PIN && _deviceConfig->isInput(pin)) {
       int address = _deviceConfig->getAddress(pin);
-      if(digitalRead(pin) == HIGH) {
+      if(digitalRead(PIN_MAP[pin]) == HIGH) {
         _memory->writeBoolean(address, true);
       }
       else {
@@ -74,9 +74,14 @@ void IO::scanInputs() {
       }
     }
   }
-  for(int analogPin = MIN_ANALOG_INPUT; analogPin <= MAX_ANALOG_INPUT; analogPin++) {
-    byte address = analogPin - MIN_ANALOG_INPUT;
+  for(int analogPin = 0; analogPin < MAX_ANALOG_INPUT; analogPin++) {
+    byte address = analogPin;
+#ifdef NODEMCU
+    /* There is only 1 ADC on NodeMCU */    
     int value = analogRead(analogPin);
+#else    
+    int value = analogRead(analogPin);
+#endif
     NumericMemoryValue memoryValue;
     memoryValue.isFloat = false;
     memoryValue.value.longValue = value;
@@ -85,16 +90,16 @@ void IO::scanInputs() {
 }
 
 void IO::scanOutputs() {
-  for(int pin = MIN_PIN_NUMBER; pin <= MAX_PIN_NUMBER; pin++) {
+  for(int pin = 0; pin < MAX_PIN_NUMBER; pin++) {
     if(pin != STATUS_LED_PIN) {
       if(_deviceConfig->isOutput(pin)) {
         int address = _deviceConfig->getAddress(pin);
         boolean value = _memory->readBoolean(address);
         if(value) {
-          digitalWrite(pin, HIGH);
+          digitalWrite(PIN_MAP[pin], HIGH);
         }
         else {
-          digitalWrite(pin, LOW);
+          digitalWrite(PIN_MAP[pin], LOW);
         }
       }
       else if(_deviceConfig->isPwm(pin)) {
@@ -117,20 +122,20 @@ void IO::scanOutputs() {
         else {
           byteOutputValue = outputValue;
         }
-        analogWrite(pin, byteOutputValue);
+        analogWrite(PIN_MAP[pin], byteOutputValue);
       }
     }
   }
 }
 
 void IO::turnOutputsOff() {
-  for(int pin = MIN_PIN_NUMBER; pin <= MAX_PIN_NUMBER; pin++) {
+  for(int pin = 0; pin < MAX_PIN_NUMBER; pin++) {
     if(pin != STATUS_LED_PIN) {
       if(_deviceConfig->isOutput(pin)) {
-        digitalWrite(pin, LOW);
+        digitalWrite(PIN_MAP[pin], LOW);
       }
       else if(_deviceConfig->isPwm(pin)) {
-        analogWrite(pin, 0);
+        analogWrite(PIN_MAP[pin], 0);
       }
     }
   }

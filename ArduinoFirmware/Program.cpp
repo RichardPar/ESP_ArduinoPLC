@@ -117,5 +117,7 @@ void Program::writeToEeprom() {
   for(int i = 0; i < _programSize; i++) {
     EEPROM.write(address++, _programMemory[i]);
   }
+#ifdef NODEMCU
+  EEPROM.commit();
+#endif 
 }
-

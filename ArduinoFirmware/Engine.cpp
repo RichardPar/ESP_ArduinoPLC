@@ -756,4 +756,8 @@ void Engine::writeToEeprom() {
   else {
     EEPROM.write(address++, 0);
   }
+#ifdef NODEMCU  
+  EEPROM.commit();
+#endif  
+  
 }
